@@ -1,5 +1,7 @@
 # hashstructure [![GoDoc](https://godoc.org/github.com/mitchellh/hashstructure?status.svg)](https://godoc.org/github.com/mitchellh/hashstructure)
 
+# THIS IS A FORK of github.com/mitchellh/hashstructure WHICH RETURNS []byte INSTEAD OF uint64!!
+
 hashstructure is a Go library for creating a unique hash value
 for arbitrary values in Go.
 
@@ -30,7 +32,7 @@ sending data across the network, caching values locally (de-dup), and so on.
 Standard `go get`:
 
 ```
-$ go get github.com/scratch-net/hashstructure
+$ go get github.com/scratch-net/hashstructure/v2
 ```
 
 **Note on v2:** It is highly recommended you use the "v2" release since this
