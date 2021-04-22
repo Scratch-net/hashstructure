@@ -30,7 +30,7 @@ sending data across the network, caching values locally (de-dup), and so on.
 Standard `go get`:
 
 ```
-$ go get github.com/mitchellh/hashstructure/v2
+$ go get github.com/scratch-net/hashstructure
 ```
 
 **Note on v2:** It is highly recommended you use the "v2" release since this
@@ -72,5 +72,5 @@ if err != nil {
 
 fmt.Printf("%d", hash)
 // Output:
-// 2307517237273902113
+// [some hash]
 ```

@@ -1,6 +1,7 @@
 package hashstructure
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -8,6 +9,8 @@ import (
 )
 
 var testFormat = FormatV2
+
+var zeroHash = make([]byte, 32)
 
 func TestHash_identity(t *testing.T) {
 	cases := []interface{}{
@@ -40,7 +43,7 @@ func TestHash_identity(t *testing.T) {
 	for _, tc := range cases {
 		// We run the test 100 times to try to tease out variability
 		// in the runtime in terms of ordering.
-		valuelist := make([]uint64, 100)
+		valuelist := make([][]byte, 100)
 		for i := range valuelist {
 			v, err := Hash(tc, testFormat, nil)
 			if err != nil {
@@ -51,14 +54,14 @@ func TestHash_identity(t *testing.T) {
 		}
 
 		// Zero is always wrong
-		if valuelist[0] == 0 {
+		if bytes.Compare(valuelist[0], zeroHash) == 0 {
 			t.Fatalf("zero hash: %#v", tc)
 		}
 
 		// Make sure all the values match
 		t.Logf("%#v: %d", tc, valuelist[0])
 		for i := 1; i < len(valuelist); i++ {
-			if valuelist[i] != valuelist[0] {
+			if bytes.Compare(valuelist[i], valuelist[0]) != 0 {
 				t.Fatalf("non-matching: %d, %d\n\n%#v", i, 0, tc)
 			}
 		}
@@ -184,12 +187,12 @@ func TestHash_equal(t *testing.T) {
 			}
 
 			// Zero is always wrong
-			if one == 0 {
+			if bytes.Compare(one, zeroHash) == 0 {
 				t.Fatalf("zero hash: %#v", tc.One)
 			}
 
 			// Compare
-			if (one == two) != tc.Match {
+			if (bytes.Compare(one, two) == 0) != tc.Match {
 				t.Fatalf("bad, expected: %#v\n\n%#v\n\n%#v", tc.Match, tc.One, tc.Two)
 			}
 		})
@@ -280,12 +283,12 @@ func TestHash_equalIgnore(t *testing.T) {
 		}
 
 		// Zero is always wrong
-		if one == 0 {
+		if bytes.Compare(one, zeroHash) == 0 {
 			t.Fatalf("zero hash: %#v", tc.One)
 		}
 
 		// Compare
-		if (one == two) != tc.Match {
+		if (bytes.Compare(one, two) == 0) != tc.Match {
 			t.Fatalf("bad, expected: %#v\n\n%#v\n\n%#v", tc.Match, tc.One, tc.Two)
 		}
 	}
@@ -409,12 +412,12 @@ func TestHash_equalNil(t *testing.T) {
 		}
 
 		// Zero is always wrong
-		if one == 0 {
+		if bytes.Compare(one, zeroHash) == 0 {
 			t.Fatalf("zero hash: %#v", tc.One)
 		}
 
 		// Compare
-		if (one == two) != tc.Match {
+		if (bytes.Compare(one, two) == 0) != tc.Match {
 			t.Fatalf("bad, expected: %#v\n\n%#v\n\n%#v", tc.Match, tc.One, tc.Two)
 		}
 	}
@@ -454,12 +457,12 @@ func TestHash_equalSet(t *testing.T) {
 		}
 
 		// Zero is always wrong
-		if one == 0 {
+		if bytes.Compare(one, zeroHash) == 0 {
 			t.Fatalf("zero hash: %#v", tc.One)
 		}
 
 		// Compare
-		if (one == two) != tc.Match {
+		if (bytes.Compare(one, two) == 0) != tc.Match {
 			t.Fatalf("bad, expected: %#v\n\n%#v\n\n%#v", tc.Match, tc.One, tc.Two)
 		}
 	}
@@ -500,12 +503,12 @@ func TestHash_includable(t *testing.T) {
 		}
 
 		// Zero is always wrong
-		if one == 0 {
+		if bytes.Compare(one, zeroHash) == 0 {
 			t.Fatalf("zero hash: %#v", tc.One)
 		}
 
 		// Compare
-		if (one == two) != tc.Match {
+		if (bytes.Compare(one, two) == 0) != tc.Match {
 			t.Fatalf("bad, expected: %#v\n\n%#v\n\n%#v", tc.Match, tc.One, tc.Two)
 		}
 	}
@@ -547,7 +550,7 @@ func TestHash_ignoreZeroValue(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to hash %#v: %s", structB, err)
 		}
-		if (hashA == hashB) != tc.IgnoreZeroValue {
+		if (bytes.Compare(hashA, hashB) == 0) != tc.IgnoreZeroValue {
 			t.Fatalf("bad, expected: %#v\n\n%d\n\n%d", tc.IgnoreZeroValue, hashA, hashB)
 		}
 	}
@@ -588,12 +591,12 @@ func TestHash_includableMap(t *testing.T) {
 		}
 
 		// Zero is always wrong
-		if one == 0 {
+		if bytes.Compare(one, zeroHash) == 0 {
 			t.Fatalf("zero hash: %#v", tc.One)
 		}
 
 		// Compare
-		if (one == two) != tc.Match {
+		if (bytes.Compare(one, two) == 0) != tc.Match {
 			t.Fatalf("bad, expected: %#v\n\n%#v\n\n%#v", tc.Match, tc.One, tc.Two)
 		}
 	}
@@ -662,12 +665,12 @@ func TestHash_hashable(t *testing.T) {
 			}
 
 			// Zero is always wrong
-			if one == 0 {
+			if bytes.Compare(one, zeroHash) == 0 {
 				t.Fatalf("zero hash: %#v", tc.One)
 			}
 
 			// Compare
-			if (one == two) != tc.Match {
+			if (bytes.Compare(one, two) == 0) != tc.Match {
 				t.Fatalf("bad, expected: %#v\n\n%#v\n\n%#v", tc.Match, tc.One, tc.Two)
 			}
 		})
@@ -704,26 +707,33 @@ type testHashable struct {
 	Err   error
 }
 
-func (t testHashable) Hash() (uint64, error) {
+func (t testHashable) Hash() ([]byte, error) {
 	if t.Err != nil {
-		return 0, t.Err
+		return nil, t.Err
 	}
 
 	if strings.HasPrefix(t.Value, "foo") {
-		return 500, nil
+		r := make([]byte, 32)
+		r[0] = 5
+		return r, nil
 	}
-
-	return 100, nil
+	r := make([]byte, 32)
+	r[0] = 1
+	return r, nil
 }
 
 type testHashablePointer struct {
 	Value string
 }
 
-func (t *testHashablePointer) Hash() (uint64, error) {
+func (t *testHashablePointer) Hash() ([]byte, error) {
 	if strings.HasPrefix(t.Value, "foo") {
-		return 500, nil
+		r := make([]byte, 32)
+		r[0] = 5
+		return r, nil
 	}
 
-	return 100, nil
+	r := make([]byte, 32)
+	r[0] = 1
+	return r, nil
 }
